@@ -1,0 +1,56 @@
+# Node dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+coverage/
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# TypeScript (if applicable)
+*.tsbuildinfo
+
+# Nodemon / PM2 files
+.nodemonignore
+pids/
+logs/
+
+# OS files
+ehthumbs.db
+Icon?
+
+# GraphQL schema artifacts (if generated)
+schema.graphql
+schema.json
+.graphqlconfig
