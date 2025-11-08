@@ -9,7 +9,6 @@ import {
   GraphQLID,
 } from "graphql";
 import User from "../models/user.js";
-const users = [];
 // Define User type custom GraphQL object type
 const UserType = new GraphQLObjectType({
   name: "User",
@@ -32,14 +31,19 @@ const RootQuery = new GraphQLObjectType({
     users: {
       type: new GraphQLList(UserType),
       resolve() {
-        return users;
+        // Return users from the database using Mongoose
+        return User.find();
       },
     },
     user: {
       type: UserType,
-      args: { id: { type: GraphQLID } },
-      resolve(parent, args) {
-        return User.findById(args.id);
+      args: { id: { type: GraphQLID }, email: { type: GraphQLString } },
+      async resolve(parent, args) {
+        // Allow lookup by id or by email. Prefer id if provided.
+        if (args.id) return User.findById(args.id);
+        if (args.email) return User.findOne({ email: args.email });
+        // If no identifier provided, return null (or throw error depending on desired behavior)
+        return null;
       },
     },
   },
