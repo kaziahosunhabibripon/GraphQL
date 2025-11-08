@@ -5,46 +5,23 @@ import {
   GraphQLBoolean,
   GraphQLInt,
   GraphQLList,
+  GraphQLNonNull,
+  GraphQLID,
 } from "graphql";
-
-// Dummy data
-const users = [
-  {
-    id: "1",
-    name: "Azmain Habib",
-    email: "azmain@gmail.com",
-    age: 25,
-    occupation: "Software Engineer",
-    isActive: true,
-  },
-  {
-    id: "2",
-    name: "Ahosun Habib",
-    email: "ahosun@gmail.com",
-    age: 30,
-    occupation: "Teacher",
-    isActive: false,
-  },
-  {
-    id: "3",
-    name: "Jinnat Jahan",
-    email: "jinnat@gmail.com",
-    age: 28,
-    occupation: "Housewife",
-    isActive: false,
-  },
-];
-
+import User from "../models/user.js";
+const users = [];
 // Define User type custom GraphQL object type
 const UserType = new GraphQLObjectType({
   name: "User",
   fields: {
-    id: { type: GraphQLString },
+    id: { type: GraphQLID },
     name: { type: GraphQLString },
     email: { type: GraphQLString },
     age: { type: GraphQLInt },
     occupation: { type: GraphQLString },
     isActive: { type: GraphQLBoolean },
+    createdAt: { type: GraphQLString },
+    updatedAt: { type: GraphQLString },
   },
 });
 
@@ -60,9 +37,9 @@ const RootQuery = new GraphQLObjectType({
     },
     user: {
       type: UserType,
-      args: { id: { type: GraphQLString } },
+      args: { id: { type: GraphQLID } },
       resolve(parent, args) {
-        return users.find((user) => user.id === args.id);
+        return User.findById(args.id);
       },
     },
   },
@@ -74,62 +51,60 @@ const userMutation = new GraphQLObjectType({
     createUser: {
       type: UserType,
       args: {
-        name: { type: GraphQLString },
-        email: { type: GraphQLString },
+        name: { type: new GraphQLNonNull(GraphQLString) },
+        email: { type: new GraphQLNonNull(GraphQLString) },
+        password: { type: new GraphQLNonNull(GraphQLString) },
         age: { type: GraphQLInt },
         occupation: { type: GraphQLString },
         isActive: { type: GraphQLBoolean },
       },
-      resolve(parent, args) {
-        const newUser = {
-          id: String(users.length + 1),
-          name: args.name,
-          email: args.email,
-          age: args.age,
-          occupation: args.occupation,
-          isActive: args.isActive,
-        };
-        users.push(newUser);
-
-        return newUser;
+      async resolve(parent, args) {
+        try {
+          const user = new User(args);
+          return await user.save();
+        } catch (error) {
+          throw new Error(error.message);
+        }
       },
     },
     updateUser: {
       type: UserType,
       args: {
-        id: { type: GraphQLString },
+        id: { type: new GraphQLNonNull(GraphQLID) },
         name: { type: GraphQLString },
         email: { type: GraphQLString },
         age: { type: GraphQLInt },
         occupation: { type: GraphQLString },
         isActive: { type: GraphQLBoolean },
       },
-      resolve(parent, args) {
-        const user = users.find((user) => user.id === args.id);
-
-        if (!user) throw new Error("User not found");
-        if (user) {
-          Object.keys(args).forEach((key) => {
-            if (args[key] !== undefined) user[key] = args[key];
-          });
+      async resolve(parent, args) {
+        try {
+          const { id, ...updateData } = args;
+          const user = await User.findByIdAndUpdate(
+            id,
+            { $set: updateData },
+            { new: true, runValidators: true }
+          );
+          if (!user) throw new Error("User not found");
           return user;
+        } catch (error) {
+          throw new Error(error.message);
         }
-
-        Object.assign(user, args);
-        return user;
       },
     },
     deleteUser: {
       type: UserType,
       args: {
-        id: { type: GraphQLString },
+        id: { type: new GraphQLNonNull(GraphQLID) },
       },
-      resolve(parent, args) {
-        const userIndex = users.findIndex((user) => user.id === args.id);
-        if (userIndex === -1) throw new Error("User not found");
-
-        const deletedUser = users.splice(userIndex, 1);
-        return deletedUser[0];
+      async resolve(parent, args) {
+        try {
+          const user = await User.findByIdAndDelete(args.id);
+          if (!user) throw new Error("User not found");
+          return user;
+        } catch (error) {
+          throw new Error(error.message);
+        }
       },
     },
   },
