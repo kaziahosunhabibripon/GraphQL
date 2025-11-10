@@ -2,8 +2,7 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { graphqlHTTP } from "express-graphql";
-import schema from "./schema/schema.js";
-
+import schema from "./schema/index.js";
 const app = express();
 
 // Middleware
