@@ -13,6 +13,7 @@ import Book from "../models/Book.js";
 import AuthorType from "../types/AuthorType.js";
 import BookType from "../types/BookType.js";
 import BookPaginationType from "../types/BookPaginationType.js";
+import AuthorPaginationType from "../types/AuthorPaginationType.js";
 const Mutation = new GraphQLObjectType({
   name: "Mutation",
   fields: {
@@ -48,9 +49,28 @@ const RootQuery = new GraphQLObjectType({
   name: "RootQueryType",
   fields: {
     authors: {
-      type: new GraphQLList(AuthorType),
-      resolve() {
-        return Author.find();
+      type: AuthorPaginationType,
+      args: {
+        page: { type: GraphQLInt },
+        authorId: { type: GraphQLID },
+      },
+      async resolve(parent, args) {
+        const limit = 1;
+        const page = args.page || 1;
+        const offset = (page - 1) * limit;
+        const totalCount = await Author.countDocuments();
+        const totalPages = Math.ceil(totalCount / limit);
+
+        const authors = await Author.find().skip(offset).limit(limit);
+        const NextPage = page < totalPages ? "true" : "false";
+        const PreviousPage = page > 1 ? "true" : "false";
+        return {
+          authors,
+          totalPages,
+          currentPage: page,
+          isNextPage: NextPage,
+          isPreviousPage: PreviousPage,
+        };
       },
     },
     books: {
@@ -61,7 +81,7 @@ const RootQuery = new GraphQLObjectType({
         authorId: { type: GraphQLID },
       },
       async resolve(parent, args) {
-        const limit = 2;
+        const limit = 3;
         const page = args.page || 1;
         const offset = (page - 1) * limit;
         const filter = {};
@@ -71,12 +91,14 @@ const RootQuery = new GraphQLObjectType({
         const totalPages = Math.ceil(totalCount / limit);
 
         const books = await Book.find(filter).skip(offset).limit(limit);
+        const NextPage = page < totalPages ? "true" : "false";
+        const PreviousPage = page > 1 ? "true" : "false";
         return {
           books,
           totalPages,
           currentPage: page,
-          isNextPage: page < totalPages ? "true" : "false",
-          isPreviousPage: page > 1 ? "true" : "false",
+          isNextPage: NextPage,
+          isPreviousPage: PreviousPage,
         };
       },
     },
