@@ -4,22 +4,28 @@ import {
   GraphQLObjectType,
   GraphQLString,
 } from "graphql";
-import BookType from "./BookType.js";
-import Book from "../models/Book.js";
+import Category from "../models/Category.js";
 
 const CategoryType = new GraphQLObjectType({
   name: "Category",
-  fields: () => {
-    return {
-      id: { type: GraphQLID },
-      name: { type: GraphQLString },
-      books: {
-        type: new GraphQLList(BookType),
-        async resolve(parent, args) {
-          return await Book.find({ categoryId: { $in: parent.id } });
-        },
+  fields: () => ({
+    id: { type: GraphQLID },
+    name: { type: GraphQLString },
+    parentCategory: {
+      type: CategoryType,
+      resolve(parent) {
+        return parent.parentCategory
+          ? Category.findById(parent.parentCategory)
+          : null;
       },
-    };
-  },
+    },
+
+    subCategories: {
+      type: new GraphQLList(CategoryType),
+      resolve(parent) {
+        return Category.find({ parentCategory: parent.id });
+      },
+    },
+  }),
 });
 export default CategoryType;

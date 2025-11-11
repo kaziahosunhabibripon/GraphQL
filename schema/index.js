@@ -50,9 +50,13 @@ const Mutation = new GraphQLObjectType({
       type: CategoryType,
       args: {
         name: { type: new GraphQLNonNull(GraphQLString) },
+        parentCategory: { type: GraphQLID },
       },
       resolve(parent, args) {
-        const category = new Category({ name: args.name });
+        const category = new Category({
+          name: args.name,
+          parentCategory: args.parentCategory || null,
+        });
         return category.save();
       },
     },
