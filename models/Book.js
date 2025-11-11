@@ -9,6 +9,12 @@ const BookSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Author",
   },
+  categoryId: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Category",
+    },
+  ],
 });
 const Book = model("Book", BookSchema);
 
