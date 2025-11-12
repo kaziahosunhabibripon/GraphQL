@@ -21,5 +21,11 @@ app.use(
     graphiql: true,
   })
 );
+app.get("/", (req, res) => {
+  res.send("Welcome to the GraphQL Book Management API");
+});
+app.get("/health", (req, res) => {
+  res.send("Server is healthy");
+});
 
 export default app;

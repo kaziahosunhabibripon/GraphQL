@@ -16,6 +16,12 @@ import BookPaginationType from "../types/BookPaginationType.js";
 import AuthorPaginationType from "../types/AuthorPaginationType.js";
 import CategoryType from "../types/CategoryTypes.js";
 import Category from "../models/Category.js";
+import PostType from "../types/PostType.js";
+import Post from "../models/Post.js";
+import Video from "../models/Video.js";
+import VideoType from "../types/VideoType.js";
+import CommentType from "../types/CommentType.js";
+import Comment from "../models/Comment.js";
 const Mutation = new GraphQLObjectType({
   name: "Mutation",
   fields: {
@@ -58,6 +64,50 @@ const Mutation = new GraphQLObjectType({
           parentCategory: args.parentCategory || null,
         });
         return category.save();
+      },
+    },
+    addPost: {
+      type: PostType,
+      args: {
+        title: { type: new GraphQLNonNull(GraphQLString) },
+        content: { type: GraphQLString },
+      },
+      resolve(parent, args) {
+        const post = new Post({
+          title: args.title,
+          content: args.content,
+        });
+        return post.save();
+      },
+    },
+    addVideo: {
+      type: VideoType,
+      args: {
+        title: { type: new GraphQLNonNull(GraphQLString) },
+        url: { type: GraphQLString },
+      },
+      resolve(parent, args) {
+        const video = new Video({
+          title: args.title,
+          url: args.url,
+        });
+        return video.save();
+      },
+    },
+    addComment: {
+      type: CommentType,
+      args: {
+        content: { type: new GraphQLNonNull(GraphQLString) },
+        commentableId: { type: new GraphQLNonNull(GraphQLID) },
+        commentableType: { type: new GraphQLNonNull(GraphQLString) },
+      },
+      resolve(parent, args) {
+        const comment = new Comment({
+          content: args.content,
+          commentableId: args.commentableId,
+          commentableType: args.commentableType,
+        });
+        return comment.save();
       },
     },
   },
@@ -134,6 +184,24 @@ const RootQuery = new GraphQLObjectType({
       type: new GraphQLList(CategoryType),
       resolve(parent, args) {
         return Category.find();
+      },
+    },
+    posts: {
+      type: new GraphQLList(PostType),
+      resolve() {
+        return Post.find();
+      },
+    },
+    videos: {
+      type: new GraphQLList(VideoType),
+      resolve() {
+        return Video.find();
+      },
+    },
+    comments: {
+      type: new GraphQLList(CommentType),
+      resolve() {
+        return Comment.find();
       },
     },
   },
